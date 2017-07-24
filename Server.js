@@ -36,7 +36,7 @@ io.on('connection', function(socket){
   //チャットメッセージ
   socket.on('movechar', function(data){
     io.emit('movechar', data);
-	console.log('movechar: ' + data);
+	  console.log('movechar: ' + data);
   });
 
   //切断
