@@ -1,9 +1,10 @@
-document.write('<script type="text/javascript" language="JavaScript" src="MathExtension.js"></script>');
+document.write('<script type="text/javascript" language="JavaScript" src="js/jquery.min.js"></script>');
+document.write('<script type="text/javascript" language="JavaScript" src="js/MathExtension.js"></script>');
 
 //----- ----- ----- -----
 // プレイヤーのプロトタイプ
 //----- ----- ----- -----
-var Player = function(id, file_name, pos_x, pos_y, angle, is_alive, is_shot)
+var Player = function(id, file_name, pos_x, pos_y, angle)
 {
     this.id        = id;
     this.image     = new Image();
@@ -13,30 +14,30 @@ var Player = function(id, file_name, pos_x, pos_y, angle, is_alive, is_shot)
     this.startX    = pos_x;
     this.startY    = pos_y;
     this.angle     = angle;
-    this.is_alive  = is_alive;
-    this.is_shot   = is_shot;
+    this.is_alive  = true;
+    this.is_shot   = false;
     this.input_key = new InputKeyboard();
-}
+};
 
 Player.prototype = 
 {
     //更新
-    Update : function()
+    update        : function()
     {
         var vecX = 0;
         var vecY = 0;
 
         // 上キーが押された
-		if(input_key.isDown(38)) { vecY -= 10; }
+		if(input_key.isDown(119)) { vecY -= 10; }
 
 		// 下キーが押された
-		if(input_key.isDown(40)) { vecY += 10; }
+		if(input_key.isDown(115)) { vecY += 10; }
 
 		// 左キーが押された
-		if(input_key.isDown(37)) { vecX -= 10; }
+		if(input_key.isDown(97 )) { vecX -= 10; }
 
 		// 右キーが押された
-		if(input_key.isDown(39)) { vecX += 10; }
+		if(input_key.isDown(100)) { vecX += 10; }
 
         this.localMove(vecX, vecY);
 
