@@ -24,7 +24,7 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/jquery.min.js"></script>
 <script src="/js/player.js"></script>
-<script src="/js/Input.js"></script>
+<script src="/js/MyInput.js"></script>
 <script>
 
     posx   = 0;
@@ -36,7 +36,7 @@
     bg.src = "image/GameBG.png";
     var player = new Player(0, "image/player.png", 100, 100, 30);
 
-    var input = new Input();
+    var input = new MyInput();
     window.onkeydown   = function(e)
     {
         input.KeyStates[e.keyCode] = true;
@@ -59,6 +59,7 @@
                 $('#canvas').attr('width' , w);
                 $('#canvas').attr('height', h);
 
+                input.init();
 				renderer_canvas();
 			}
 
@@ -75,8 +76,6 @@
         ctx.closePath();
         ctx.stroke();
 
-        input.update();
-
         posx += speedx;
         posy += speedy;
         if(posx > $('#canvas').width() || posx < 0)
@@ -90,6 +89,9 @@
         
         player.update(input);
         player.draw(ctx);
+
+        //後に更新
+        input.rateUpdate();
 
         progress_timer = setTimeout("renderer_canvas()", 16);
     }

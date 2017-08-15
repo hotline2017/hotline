@@ -1,20 +1,24 @@
-var Input = function()
+var MyInput = function()
 {
     this.KeyStates    = new Array(256);
     this.KeyPressTime = new Array(256);
-    for(var i = 0; i < this.KeyStates.Length; i++)
-    {
-        this.KeyStates[i]    = false;
-        this.KeyPressTime[i] = 0;
-    }
-
+    
     this.mouse_x = 0;
     this.mouse_y = 0;
 };
 
-Input.prototype =
+MyInput.prototype =
 {
-    update      : function()
+    init        : function()
+    {
+        for(var i = 0; i < 255; i++)
+        {
+            this.KeyStates[i]    = false;
+            this.KeyPressTime[i] = 0;
+        }
+    },
+
+    rateUpdate  : function()
     {
         for(var i = 0; i < this.KeyStates.Length; i++)
         {
@@ -36,12 +40,12 @@ Input.prototype =
     isKeydown   : function(code)
     {
         return this.KeyStates[code]    == true &&
-               this.KeyPressTime[code] == 0;
+               this.KeyPressTime[code] == 1;
     },
 
     keydown     : function(code)
     {
-        return this.KeyStates[code] == true;
+        return this.KeyStates[code]    == true;
     },
 
     isKeyup     : function(code)
@@ -52,6 +56,6 @@ Input.prototype =
 
     keyup       : function(code)
     {
-        return this.KeyStates[code] == false;
+        return this.KeyStates[code]    == false;
     }
 }

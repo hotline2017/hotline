@@ -1,6 +1,6 @@
 document.write('<script type="text/javascript" language="JavaScript" src="js/jquery.min.js"></script>');
 document.write('<script type="text/javascript" language="JavaScript" src="js/MathExtension.js"></script>');
-document.write('<script type="text/javascript" language="JavaScript" src="js/InputKey.js"></script>');
+document.write('<script type="text/javascript" language="JavaScript" src="js/MyInput.js"></script>');
 
 //----- ----- ----- -----
 // プレイヤーのプロトタイプ
@@ -27,7 +27,7 @@ Player.prototype =
         var vecY = 0;
 
         // 上キーが押された
-        if(input.keydown(87)) { vecY -= 10; }
+        if(input.keyup(87)) { vecY -= 10; }
 
         // 下キーが押された
         if(input.keydown(83)) { vecY += 10; }
