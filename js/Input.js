@@ -1,4 +1,4 @@
-var InputKey = function()
+var Input = function()
 {
     this.KeyStates    = new Array(256);
     this.KeyPressTime = new Array(256);
@@ -7,11 +7,14 @@ var InputKey = function()
         this.KeyStates[i]    = false;
         this.KeyPressTime[i] = 0;
     }
+
+    this.mouse_x = 0;
+    this.mouse_y = 0;
 };
 
-InputKey.prototype =
+Input.prototype =
 {
-    update : function()
+    update      : function()
     {
         for(var i = 0; i < this.KeyStates.Length; i++)
         {
@@ -30,24 +33,24 @@ InputKey.prototype =
         }
     },
 
-    isKeydown : function(code)
+    isKeydown   : function(code)
     {
         return this.KeyStates[code]    == true &&
                this.KeyPressTime[code] == 0;
     },
 
-    keydown : function(code)
+    keydown     : function(code)
     {
         return this.KeyStates[code] == true;
     },
 
-    isKeyup : function(code)
+    isKeyup     : function(code)
     {
         return this.KeyStates[code]    == false &&
                this.KeyPressTime[code] != 0;
     },
 
-    keyup   : function(code)
+    keyup       : function(code)
     {
         return this.KeyStates[code] == false;
     }

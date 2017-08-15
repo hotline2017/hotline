@@ -24,7 +24,7 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/jquery.min.js"></script>
 <script src="/js/player.js"></script>
-<script src="/js/InputKey.js"></script>
+<script src="/js/Input.js"></script>
 <script>
 
     posx   = 0;
@@ -36,16 +36,22 @@
     bg.src = "image/GameBG.png";
     var player = new Player(0, "image/player.png", 100, 100, 30);
 
-    var inputKey = new InputKey();
-    window.onkeydown = function(e)
+    var input = new Input();
+    window.onkeydown   = function(e)
     {
-        inputKey.KeyStates[e.keyCode] = true;
-    }
-    window.onkeyup = function(e)
-    {
-        inputKey.KeyStates[e.keyCode] = false;
+        input.KeyStates[e.keyCode] = true;
     }
 
+    window.onkeyup     = function(e)
+    {
+        input.KeyStates[e.keyCode] = false;
+    }
+
+    window.onmousemove = function(e)
+    {
+        input.mouse_x = e.clientX;
+        input.mouse_y = e.clientY;
+    };
 
     window.onload = function(){
                 var w = $('.wrapper').width();
@@ -69,7 +75,7 @@
         ctx.closePath();
         ctx.stroke();
 
-        inputKey.update();
+        input.update();
 
         posx += speedx;
         posy += speedy;
@@ -82,7 +88,7 @@
             speedy = -speedy;
         }
         
-        player.update(inputKey);
+        player.update(input);
         player.draw(ctx);
 
         progress_timer = setTimeout("renderer_canvas()", 16);

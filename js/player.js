@@ -21,41 +21,48 @@ var Player = function(id, file_name, pos_x, pos_y, angle)
 
 Player.prototype = 
 {
-    update : function(inputKey)
+    update        : function(input)
     {
         var vecX = 0;
         var vecY = 0;
 
         // 上キーが押された
-        if(inputKey.keydown(87)) { vecY -= 10; }
+        if(input.keydown(87)) { vecY -= 10; }
 
         // 下キーが押された
-        if(inputKey.keydown(83)) { vecY += 10; }
+        if(input.keydown(83)) { vecY += 10; }
 
         // 左キーが押された
-        if(inputKey.keydown(65)) { vecX -= 10; }
+        if(input.keydown(65)) { vecX -= 10; }
 
         // 右キーが押された
-        if(inputKey.keydown(68)) { vecX += 10; }
+        if(input.keydown(68)) { vecX += 10; }
 
-        player.localMove(vecX, vecY);
+        this.localMove(vecX, vecY);
+        this.rotate(input.mouse_x, input.mouse_y);
+
     },
 
     draw          : function(ctx)
     {
-        ctx.drawImage(this.image, 0, 0, 179, 240, this.pos_x, this.pos_y, 179, 240);
+        ctx.save();
+        ctx.translate(this.pos_x, this.pos_y);
+        ctx.rotate(this.angle);
+        ctx.drawImage(this.image, 0, 0, 45, 60, -22.5, -30, 45, 60);
+
+        ctx.restore();
     },
 
-    localMove     : function(x_velocity, y_velocity)
+    localMove     : function(vel_x, vel_y)
     {
-        this.pos_x += x_velocity;
-        this.pos_y += y_velocity;
+        this.pos_x += vel_x;
+        this.pos_y += vel_y;
     },
 
     receiveMove   : function(id, x_position, y_position)
     {
-        this.pos_x = MathExtension.lerp(this.x_pos, x_position, 0.25);
-        this.pos_y = MathExtension.lerp(this.y_pos, y_position, 0.25);
+        this.pos_x = MathExtension.lerp(this.pos_x, x_position, 0.25);
+        this.pos_y = MathExtension.lerp(this.pos_y, y_position, 0.25);
     },
 
     rotate        : function(mouse_x, mouse_y)
@@ -63,7 +70,7 @@ Player.prototype =
         var dir_x = mouse_x - this.pos_x;
         var dir_y = mouse_y - this.pos_y;
 
-        this.angle = Math.atan2(dir_y, dir_x);
+        this.angle = Math.atan2(dir_y, dir_x) + Math.PI / 2;
     },
 
     receiverotate : function(angle)
