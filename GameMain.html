@@ -4,15 +4,15 @@
 <meta charset="utf8">
 <title>Socket.IO CharMove</title>
 <style>
-    body {
-  margin: 0;
-        }
-    .wrapper{
-  width: 100%;
-  height: 100%;
-  position: fixed;
+  body {
+    margin  : 0;
+  }
 
-}
+  .wrapper{
+    width   : 100%;
+    height  : 100%;
+    position: fixed;
+  }
 </style>
 </head>
 <body>
@@ -23,20 +23,34 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/jquery.min.js"></script>
+<script src="/js/player.js"></script>
+<script src="/js/InputKey.js"></script>
 <script>
 
-    posx = 0;
-    posy = 100;
+    posx   = 0;
+    posy   = 100;
     speedx = 1;
     speedy = 1;
 
     var bg = new Image();
     bg.src = "image/GameBG.png";
+    var player = new Player(0, "image/player.png", 100, 100, 30);
+
+    var inputKey = new InputKey();
+    window.onkeydown = function(e)
+    {
+        inputKey.KeyStates[e.keyCode] = true;
+    }
+    window.onkeyup = function(e)
+    {
+        inputKey.KeyStates[e.keyCode] = false;
+    }
+
 
     window.onload = function(){
                 var w = $('.wrapper').width();
                 var h = $('.wrapper').height();
-                $('#canvas').attr('width', w);
+                $('#canvas').attr('width' , w);
                 $('#canvas').attr('height', h);
 
 				renderer_canvas();
@@ -45,28 +59,34 @@
 
     var renderer_canvas = function(){
 
-            var canvas = $("#canvas").get(0);
-            var ctx = canvas.getContext('2d');
-            ctx.drawImage(bg, 0, 0, $('#canvas').width(), $('#canvas').height());
+        var canvas = $("#canvas").get(0);
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(bg, 0, 0, $('#canvas').width(), $('#canvas').height());
 
-            ctx.beginPath();
-            ctx.moveTo(40, 10);
-            ctx.lineTo(100, 100);
-            ctx.closePath();
-            ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(40, 10);
+        ctx.lineTo(100, 100);
+        ctx.closePath();
+        ctx.stroke();
 
-            posx += speedx;
-            posy += speedy;
-            if(posx > $('#canvas').width() || posx < 0)
-            {
-                speedx = -speedx;
-            }
-            if(posy > $('#canvas').height() || posy < 100)
-            {
-                speedy = -speedy;
-            }
-			progress_timer = setTimeout("renderer_canvas()", 16);
-		}
+        inputKey.update();
+
+        posx += speedx;
+        posy += speedy;
+        if(posx > $('#canvas').width() || posx < 0)
+        {
+            speedx = -speedx;
+        }
+        if(posy > $('#canvas').height() || posy < 100)
+        {
+            speedy = -speedy;
+        }
+        
+        player.update(inputKey);
+        player.draw(ctx);
+
+        progress_timer = setTimeout("renderer_canvas()", 16);
+    }
 
 $(function () {
 	var socket = io();
