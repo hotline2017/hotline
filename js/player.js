@@ -27,7 +27,7 @@ Player.prototype =
         var vecY = 0;
 
         // 上キーが押された
-        if(input.keyup(87)) { vecY -= 10; }
+        if(input.keydown(87)) { vecY -= 10; }
 
         // 下キーが押された
         if(input.keydown(83)) { vecY += 10; }

@@ -11,7 +11,7 @@ MyInput.prototype =
 {
     init        : function()
     {
-        for(var i = 0; i < 255; i++)
+        for(var i = 0; i < 256; i++)
         {
             this.KeyStates[i]    = false;
             this.KeyPressTime[i] = 0;
@@ -20,7 +20,7 @@ MyInput.prototype =
 
     rateUpdate  : function()
     {
-        for(var i = 0; i < this.KeyStates.Length; i++)
+        for(var i = 0; i < 256; i++)
         {
             if(this.KeyStates[i]    == true)
             {
@@ -40,7 +40,7 @@ MyInput.prototype =
     isKeydown   : function(code)
     {
         return this.KeyStates[code]    == true &&
-               this.KeyPressTime[code] == 1;
+               this.KeyPressTime[code] == 0;
     },
 
     keydown     : function(code)
