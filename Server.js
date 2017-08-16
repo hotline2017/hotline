@@ -1,4 +1,10 @@
 /**
+ * サーバーに必要な変数
+ */
+
+var player_num = 0;
+
+/**
  * Socket.ioを使用した簡易チャット
  * https://socket.io/get-started/chat/
  */
@@ -31,16 +37,30 @@ http.listen(3000, function(){
 //--------------------------------------
 io.on('connection', function(socket){
   //接続時のメッセージ
-  console.log('a user connected');
+  player_num++;
+  console.log('a user connected player_count:'+player_num);
 
-  //チャットメッセージ
+  //プレイヤー情報を送る
   socket.on('movechar', function(data){
     io.emit('movechar', data);
 	  console.log('movechar: ' + data);
   });
 
+  //入場
+  socket.on('playerjoin', function(){
+    console.log('join');
+    io.emit('playerjoin',player_num);
+  });
+
+  //入場
+  socket.on('playerjoin', function(){
+    console.log('join');
+    io.emit('playerjoin',player_num);
+  });
+
   //切断
   socket.on('disconnect', function(){
-    console.log('user disconnected');
+    player_num--;
+    console.log('user disconnected player_count:'+player_num);
   });
 });
