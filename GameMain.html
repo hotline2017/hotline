@@ -24,14 +24,17 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/jquery.min.js"></script>
 <script src="/js/player.js"></script>
+<script src="/js/MathExtension"></script>
 <script src="/js/MyInput.js"></script>
 <script>
 
     var socket = io();
     var bg = new Image();
     bg.src = "image/GameBG.png";
-    var players = {};
 
+    //参加しているプレイヤーを入れておく連想配列
+    var players = {};
+    //ローカルで使うプレイヤーのId兼ハッシュキー(文字)
     var currentid = null;
 
     var input = new MyInput();
@@ -52,18 +55,15 @@
     };
 
     window.onload = function(){
-                var w = $('.wrapper').width();
-                var h = $('.wrapper').height();
-                $('#canvas').attr('width' , w);
-                $('#canvas').attr('height', h);
 
-                //players[0] = new Player(0, "image/player.png", 100, 100, 30);
-                //players[1]  = new Player(1, "image/player.png", 400, 100, 30);
-                //players[2]  = new Player(2, "image/player.png", 100, 400, 30);
-                //players[3]  = new Player(3, "image/player.png", 400, 400, 30);
+        //画面枠を最大サイズにする（初期状態の大きさなので実行中に大きさ変えるとバグる）
+        var w = $('.wrapper').width();
+        var h = $('.wrapper').height();
+        $('#canvas').attr('width' , w);
+        $('#canvas').attr('height', h);
 
-                input.init();
-			}
+        input.init();
+	}
 
 
     var renderer_canvas = function(){
@@ -72,7 +72,9 @@
         var ctx = canvas.getContext('2d');
         ctx.drawImage(bg, 0, 0, $('#canvas').width(), $('#canvas').height());
 
+        //ローカルプレイヤーのみ更新
         if(players[currentid])players[currentid].update(input);
+        //全ての連想配列の描画処理を実行
         for (var key in players) {
             players[key].draw(ctx);
         }
@@ -80,7 +82,7 @@
         //後に更新
         input.rateUpdate();
         //他のサーバーにキャラが移動することを送信
-        if(players[currentid])socket.emit('movechar', {id:players[currentid].id, posx:players[currentid].pos_x,posy:players[currentid].pos_y});
+        if(players[currentid])socket.emit('sendplayerupdate', players[currentid]);
 
         progress_timer = setTimeout("renderer_canvas()", 16);
     }
@@ -104,24 +106,34 @@ $(function () {
 
     //---------------終了-------------------------------------------------
 
-    socket.on('playerjoin', function(num){
+
+    //if(!players[playerdata.id]) そのIDを持つものは存在するか？の意味
+
+    //プレイヤーが入ってきた時の処理
+    socket.on('playerjoin', function(numid){
         console.log("join");
-        players[''+num] = new Player(num, "image/player.png", num * 100, num * 100, 30);
-        if(currentid == null) currentid = ''+num;
-        //else socket.emit('gameinit',currentid);
+        //新しいプレイヤーを生成する
+        players[numid] = new Player(numid, "image/player.png", MathExtension.random(0,$('#canvas').width()), MathExtension.random(0,$('#canvas').height()), 30);
+        if(currentid == null) currentid = numid;
+        //最新のユーザーでない場合自分の場所を最新のユーザーに伝えて生成させる
         else socket.emit('gameinit',players[currentid]);
 	});
 
+    //他のユーザーを出現生成させる
     socket.on('gameinit', function(playerdata)
     {
-        if(!players[''+playerdata.id])
+        if(!players[playerdata.id])
         {
-             players[''+playerdata.id] = new Player(playerdata.id, "image/player.png", playerdata.pos_x , playerdata.pos_y, 30);
+             players[playerdata.id] = new Player(playerdata.id, "image/player.png", playerdata.pos_x , playerdata.pos_y, playerdata.angle);
         }
 	})
-
-	socket.on('movechar', function(data){
-        if(players[data.id]) players[data.id].receiveMove(data.id,data.posx,data.posy);
+    //プレイヤーのアップデート
+	socket.on('sendplayerupdate', function(playerdata){
+        if(players[playerdata.id])
+        {
+            players[playerdata.id].receiveMove(playerdata.id,playerdata.pos_x,playerdata.pos_y);
+            players[playerdata.id].receiverotate(playerdata.angle);
+        }
 	});
 
 });

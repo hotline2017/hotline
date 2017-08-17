@@ -40,14 +40,14 @@ io.on('connection', function(socket){
   console.log('a user connected player_count:'+player_num);
 
   //プレイヤー情報を送る
-  socket.on('movechar', function(data){
-    io.emit('movechar', data);
+  socket.on('sendplayerupdate', function(playerdata){
+    io.emit('sendplayerupdate', playerdata);
   });
 
   //入場
   socket.on('playerjoin', function(){
     console.log('join');
-    io.emit('playerjoin',player_num);
+    io.emit('playerjoin',''+player_num);
     player_num++;
   });
 
