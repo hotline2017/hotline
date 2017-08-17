@@ -37,25 +37,24 @@ http.listen(3000, function(){
 //--------------------------------------
 io.on('connection', function(socket){
   //接続時のメッセージ
-  player_num++;
   console.log('a user connected player_count:'+player_num);
 
   //プレイヤー情報を送る
   socket.on('movechar', function(data){
     io.emit('movechar', data);
-	  console.log('movechar: ' + data);
   });
 
   //入場
   socket.on('playerjoin', function(){
     console.log('join');
     io.emit('playerjoin',player_num);
+    player_num++;
   });
 
-  //入場
-  socket.on('playerjoin', function(){
-    console.log('join');
-    io.emit('playerjoin',player_num);
+  //初期化
+  socket.on('gameinit', function(playerdata){
+    console.log('init');
+    io.emit('gameinit',playerdata);
   });
 
   //切断

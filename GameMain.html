@@ -30,9 +30,9 @@
     var socket = io();
     var bg = new Image();
     bg.src = "image/GameBG.png";
-    var players = [];
+    var players = {};
 
-    var currentid = 0;
+    var currentid = null;
 
     var input = new MyInput();
     window.onkeydown   = function(e)
@@ -57,10 +57,10 @@
                 $('#canvas').attr('width' , w);
                 $('#canvas').attr('height', h);
 
-                players[0] = new Player(0, "image/player.png", 100, 100, 30);
-                players[1]  = new Player(1, "image/player.png", 400, 100, 30);
-                players[2]  = new Player(2, "image/player.png", 100, 400, 30);
-                players[3]  = new Player(3, "image/player.png", 400, 400, 30);
+                //players[0] = new Player(0, "image/player.png", 100, 100, 30);
+                //players[1]  = new Player(1, "image/player.png", 400, 100, 30);
+                //players[2]  = new Player(2, "image/player.png", 100, 400, 30);
+                //players[3]  = new Player(3, "image/player.png", 400, 400, 30);
 
                 input.init();
 			}
@@ -73,9 +73,8 @@
         ctx.drawImage(bg, 0, 0, $('#canvas').width(), $('#canvas').height());
 
         if(players[currentid])players[currentid].update(input);
-        for(var i = 0; i < players.length; i++)
-        {
-            players[i].draw(ctx);
+        for (var key in players) {
+            players[key].draw(ctx);
         }
 
         //後に更新
@@ -93,7 +92,6 @@ $(function () {
 	//-----------------------
 	do{
 		name = prompt("あなたの名前を「半角英数字」で入力してください");
-        currentid = name;
 		if(! name.match(/^[a-zA-Z0-9]{1,}$/)){
 			name = null;
 		}
@@ -108,11 +106,22 @@ $(function () {
 
     socket.on('playerjoin', function(num){
         console.log("join");
+        players[''+num] = new Player(num, "image/player.png", num * 100, num * 100, 30);
+        if(currentid == null) currentid = ''+num;
+        //else socket.emit('gameinit',currentid);
+        else socket.emit('gameinit',players[currentid]);
 	});
 
+    socket.on('gameinit', function(playerdata)
+    {
+        if(!players[''+playerdata.id])
+        {
+             players[''+playerdata.id] = new Player(playerdata.id, "image/player.png", playerdata.pos_x , playerdata.pos_y, 30);
+        }
+	})
+
 	socket.on('movechar', function(data){
-		console.log("[socket] movechar", data);
-        players[data.id].receiveMove(data.id,data.posx,data.posy);
+        if(players[data.id]) players[data.id].receiveMove(data.id,data.posx,data.posy);
 	});
 
 });
