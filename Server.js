@@ -2,7 +2,15 @@
  * サーバーに必要な変数
  */
 
+var INIT_GAMEEND_TIME = 180 * 60;
+
+
+//player数
 var player_num = 0;
+//0がnone  1がスタンバイ、結果表示モード　2がゲームメイン
+var game_mode = 0;
+//ゲーム内のタイマー
+var game_timer = INIT_GAMEEND_TIME;
 
 /**
  * Socket.ioを使用した簡易チャット
@@ -44,6 +52,12 @@ io.on('connection', function(socket){
     io.emit('sendplayerupdate', playerdata);
   });
 
+  //ゲーム時間の情報
+  socket.on('gametimerdata', function(timerdata){
+    if(timerdata < game_timer) game_timer = timerdata;
+    io.emit('gametimerdata', game_timer);
+  });
+
   //入場
   socket.on('playerjoin', function(){
     console.log('join');
@@ -57,9 +71,24 @@ io.on('connection', function(socket){
     io.emit('gameinit',playerdata);
   });
 
+  //ゲーム終了宣言
+  socket.on('gamefinish', function(){
+    game_timer = 1000000;
+       io.emit('gamefinish',INIT_GAMEEND_TIME);
+  });
+
+  //だれかが終了
+  socket.on('gameend', function(exitid){
+    console.log('gameend');
+    if(exitid)
+    {
+       player_num--;
+       io.emit('gameend',exitid);
+    }
+  });
+
   //切断
   socket.on('disconnect', function(){
-    player_num--;
     console.log('user disconnected player_count:'+player_num);
   });
 });

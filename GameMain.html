@@ -24,13 +24,16 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/jquery.min.js"></script>
 <script src="/js/player.js"></script>
-<script src="/js/MathExtension"></script>
+<script src="/js/MathExtension.js"></script>
 <script src="/js/MyInput.js"></script>
 <script>
 
     var socket = io();
     var bg = new Image();
     bg.src = "image/GameBG.png";
+
+    //ゲームの残り時間
+    var gametimer = 180 * 60;
 
     //参加しているプレイヤーを入れておく連想配列
     var players = {};
@@ -65,6 +68,11 @@
         input.init();
 	}
 
+    //終了時
+    window.onbeforeunload = function(){
+        socket.emit('gameend',currentid);
+    }
+
 
     var renderer_canvas = function(){
 
@@ -83,9 +91,28 @@
         input.rateUpdate();
         //他のサーバーにキャラが移動することを送信
         if(players[currentid])socket.emit('sendplayerupdate', players[currentid]);
+        gametimer--;
+        socket.emit('gametimerdata', gametimer);
+        if(gametimer <= 0)
+        {
+            socket.emit('gamefinish');
+        }
 
+        txtDisplay(ctx,""+gametimer,100,100,24,'FFFFFF');
         progress_timer = setTimeout("renderer_canvas()", 16);
     }
+
+    function txtDisplay(ctx, txt, tx, ty, tsize, textcolor){
+				em = 0;
+				var tmp_data = [];
+				tmp_data = txt.split("<BR>");
+				ctx.font = tsize + "px 'ＭＳ Ｐゴシック'";
+				ctx.fillStyle = textcolor;
+
+				for(i=0;i<tmp_data.length;i++){
+					ctx.fillText(tmp_data[i], tx, (ty + (tsize) + ((tsize + em) * i)));
+				}
+	}
 
 $(function () {
     var name   = null;
@@ -127,6 +154,25 @@ $(function () {
              players[playerdata.id] = new Player(playerdata.id, "image/player.png", playerdata.pos_x , playerdata.pos_y, playerdata.angle);
         }
 	})
+
+    //ゲーム終了が通告されたら
+    socket.on('gamefinish', function(inittime)
+    {
+        gametimer =inittime;
+	})
+
+    //だれかがゲームから抜けた
+    socket.on('gameend', function(exitid)
+    {
+        delete players[exitid];
+	})
+
+    //ゲーム時間のアップデート
+	socket.on('gametimerdata', function(timerdata)
+    {
+        gametimer = timerdata;
+	});
+
     //プレイヤーのアップデート
 	socket.on('sendplayerupdate', function(playerdata){
         if(players[playerdata.id])
