@@ -5,6 +5,8 @@ var MyInput = function()
     
     this.mouse_x = 0;
     this.mouse_y = 0;
+    this.clickStatus = false;
+    this.clickTime   = 0;
 };
 
 MyInput.prototype =
@@ -35,6 +37,19 @@ MyInput.prototype =
                 continue;
             }
         }
+
+        if(this.clickStatus == true)
+        {
+            this.clickTime += 1;
+            return;
+        }
+
+        if(this.clickStatus == false &&
+           this.clickTime   != 0)
+        {
+            this.clickTime = 0;
+            return;
+        }
     },
 
     isKeydown   : function(code)
@@ -57,5 +72,27 @@ MyInput.prototype =
     keyup       : function(code)
     {
         return this.KeyStates[code]    == false;
+    },
+
+    isMousedown : function()
+    {
+        return this.clickStatus == true &&
+               this.clickTime   == 0;
+    },
+
+    mousedown   : function()
+    {
+        return this.clickStatus == true;
+    },
+
+    isMouseup   : function()
+    {
+        return this.clickStatus == false &&
+               this.clickTime   != 0;
+    },
+    
+    mouseup     : function()
+    {
+        return this.clickStatus == false;
     }
 }

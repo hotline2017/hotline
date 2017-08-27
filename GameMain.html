@@ -52,7 +52,17 @@
     {
         input.mouse_x = e.clientX;
         input.mouse_y = e.clientY;
-    };
+    }
+
+    window.onmousedown = function(e)
+    {
+        input.clickStatus = true;
+    }
+
+    window.onmouseup   = function(e)
+    {
+        input.clickStatus = false;
+    }
 
     window.onload = function(){
 

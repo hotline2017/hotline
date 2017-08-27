@@ -1,57 +1,31 @@
 document.write('<script type="text/javascript" language="JavaScript" src="js/jquery.min.js"></script>');
 document.write('<script type="text/javascript" language="JavaScript" src="js/MathExtension.js"></script>');
 document.write('<script type="text/javascript" language="JavaScript" src="js/MyInput.js"></script>');
-document.write('<script type="text/javascript" language="JavaScript" src="js/bullet.js"></script>');
-
 //----- ----- ----- -----
-// プレイヤーのプロトタイプ
+// 弾のプロトタイプ
 //----- ----- ----- -----
-var Player = function(id, file_name, pos_x, pos_y, angle)
+var Bullet = function(id, pos_x, pos_y, angle)
 {
     this.id        = id;
     this.image     = new Image();
-    this.image.src = file_name;
+    this.image.src = "image/player.png";
     this.pos_x     = pos_x;
     this.pos_y     = pos_y;
     this.startX    = pos_x;
     this.startY    = pos_y;
     this.angle     = angle;
+    this.vel_x     = Math.cos(angle / 180 * Math.PI);
+    this.vel_y     = Math.sin(angle / 180 * Math.PI);
     this.is_alive  = true;
-    this.is_shot   = false;
+    this.speed     = 1;
 };
 
-Player.prototype = 
+Bullet.prototype =
 {
     update        : function(input)
     {
-        var vecX = 0;
-        var vecY = 0;
-
-        // 上キーが押された
-        if(input.keydown(87)) { vecY -= 10; }
-
-        // 下キーが押された
-        if(input.keydown(83)) { vecY += 10; }
-
-        // 左キーが押された
-        if(input.keydown(65)) { vecX -= 10; }
-
-        // 右キーが押された
-        if(input.keydown(68)) { vecX += 10; }
-
-        if(input.isMousedown())
-        {
-            this.bulletCollection = new Bullet(this.id, this.pos_x, this.pos_y, this.angle);
-        }
-
-        if(this.bulletCollection)
-        {
-            this.bulletCollection.update();
-        }
-
-        this.localMove(vecX, vecY);
-        this.rotate(input.mouse_x, input.mouse_y);
-
+        this.pos_x += this.vel_x;
+        this.pos_y += this.vel_y;
     },
 
     draw          : function(ctx)
@@ -62,11 +36,6 @@ Player.prototype =
         ctx.drawImage(this.image, 0, 0, 45, 60, -22.5, -30, 45, 60);
 
         ctx.restore();
-
-        if(this.bulletCollection)
-        {
-            this.bulletCollection.draw(ctx);
-        }
     },
 
     localMove     : function(vel_x, vel_y)
