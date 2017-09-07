@@ -8,16 +8,17 @@ document.write('<script type="text/javascript" language="JavaScript" src="js/bul
 //----- ----- ----- -----
 var Player = function(id, file_name, pos_x, pos_y, angle)
 {
-    this.id        = id;
-    this.image     = new Image();
-    this.image.src = file_name;
-    this.pos_x     = pos_x;
-    this.pos_y     = pos_y;
-    this.startX    = pos_x;
-    this.startY    = pos_y;
-    this.angle     = angle;
-    this.is_alive  = true;
-    this.is_shot   = false;
+    this.id         = id;
+    this.image      = new Image();
+    this.image.src  = file_name;
+    this.pos_x      = pos_x;
+    this.pos_y      = pos_y;
+    this.startX     = pos_x;
+    this.startY     = pos_y;
+    this.angle      = angle;
+    this.is_alive   = true;
+    
+    this.bulletCollection = new Array();
 };
 
 Player.prototype = 
@@ -27,30 +28,35 @@ Player.prototype =
         var vecX = 0;
         var vecY = 0;
 
-        // 上キーが押された
-        if(input.keydown(87)) { vecY -= 10; }
+        var key_up    = 87;
+        var key_down  = 83;
+        var key_left  = 65;
+        var key_right = 68;
 
-        // 下キーが押された
-        if(input.keydown(83)) { vecY += 10; }
+        if(input.keydown(key_up   )) { vecY -= 10; }
+        if(input.keydown(key_down )) { vecY += 10; }
+        if(input.keydown(key_left )) { vecX -= 10; }
+        if(input.keydown(key_right)) { vecX += 10; }
 
-        // 左キーが押された
-        if(input.keydown(65)) { vecX -= 10; }
+        var maxBulletCount = 2;
 
-        // 右キーが押された
-        if(input.keydown(68)) { vecX += 10; }
-
-        if(input.isMousedown())
+        if(input.isMousedown() && 
+           this.bulletCollection.length < maxBulletCount)
         {
-            this.bulletCollection = new Bullet(this.id, this.pos_x, this.pos_y, this.angle);
+            this.bulletCollection.push(new Bullet(this.id, this.pos_x, this.pos_y, this.angle));
         }
 
-        if(this.bulletCollection)
+        for(var i = 0; i < this.bulletCollection.length; i++)
         {
-            this.bulletCollection.update();
+            this.bulletCollection[i].update();
+            if(this.bulletCollection[i].is_alive == false)
+            {
+                this.bulletCollection.splice(i, 1);
+            }
         }
 
         this.localMove(vecX, vecY);
-        this.rotate(input.mouse_x, input.mouse_y);
+        this.localRotate(input.mouse_x, input.mouse_y);
 
     },
 
@@ -59,13 +65,15 @@ Player.prototype =
         ctx.save();
         ctx.translate(this.pos_x, this.pos_y);
         ctx.rotate(this.angle);
+
+        ctx.fillStyle = ""
         ctx.drawImage(this.image, 0, 0, 45, 60, -22.5, -30, 45, 60);
 
         ctx.restore();
 
-        if(this.bulletCollection)
+        for(var i = 0; i < this.bulletCollection.length; i++)
         {
-            this.bulletCollection.draw(ctx);
+            this.bulletCollection[i].draw(ctx);
         }
     },
 
@@ -81,7 +89,7 @@ Player.prototype =
         this.pos_y = MathExtension.lerp(this.pos_y, y_position, 0.25);
     },
 
-    rotate        : function(mouse_x, mouse_y)
+    localRotate        : function(mouse_x, mouse_y)
     {
         var dir_x = mouse_x - this.pos_x;
         var dir_y = mouse_y - this.pos_y;
@@ -89,8 +97,13 @@ Player.prototype =
         this.angle = Math.atan2(dir_y, dir_x) + Math.PI / 2;
     },
 
-    receiverotate : function(angle)
+    receiveRotate : function(angle)
     {
         this.angle = MathExtension.lerp(this.angle, angle, 0.25);
+    },
+
+    getColor : function()
+    {
+
     }
 }
