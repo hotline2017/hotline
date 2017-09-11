@@ -33,6 +33,9 @@ app.get('/', function(req, res){
 app.get('/image/:file', function(req, res){
   res.sendFile(__dirname + '/image/' + req.params.file);
 });
+app.get('/sound/:file', function (req, res) {
+    res.sendFile(__dirname + '/sound/' + req.params.file);
+});
 app.get('/js/:file', function(req, res){
   res.sendFile(__dirname + '/js/' + req.params.file);
 });

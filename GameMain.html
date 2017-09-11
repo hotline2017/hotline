@@ -5,6 +5,7 @@
 <title>Socket.IO CharMove</title>
 <style>
   body {
+    background-image: url("./image/GameBG.png");
     margin  : 0;
   }
 
@@ -18,7 +19,8 @@
 <body>
 
 <div class="wrapper">
-<canvas id="canvas"></canvas>
+<canvas id="canvas">
+</canvas>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -57,6 +59,9 @@
     var currentid = null;
 
     var input = new MyInput();
+
+    var audioElem = new Audio();
+
     window.onkeydown   = function(e)
     {
         input.KeyStates[e.keyCode] = true;
@@ -85,6 +90,8 @@
 
     window.onload = function () {
 
+        audioElem.src = "./sound/TitleBGM.mp3";
+        audioElem.play();
         //画面枠を最大サイズにする（初期状態の大きさなので実行中に大きさ変えるとバグる）
         var w = $('.wrapper').width();
         var h = $('.wrapper').height();
@@ -117,12 +124,11 @@
 
     var renderer_canvas = function () {
 
-
         if (assetloadnum == assetmaxnum);
         {
             var canvas = $("#canvas").get(0);
             var ctx = canvas.getContext('2d');
-            ctx.drawImage(bg, 0, 0, $('#canvas').width(), $('#canvas').height());
+            ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height);
 
             switch (gamemode) {
                 case 0: TitleUpdate(ctx); break;
@@ -148,6 +154,8 @@
                 } while (name === null)
                 socket.emit('playerjoin');
                 gamemode = 1; // Gameメインへ
+                //audioElem.src = "sound/PlayBGM.mp3";
+                //audioElem.play();
             }, 100);
             firstfrag = true;
         }
@@ -168,12 +176,11 @@
         if (players[currentid]) socket.emit('sendplayerupdate', players[currentid]);
         gametimer--;
         socket.emit('gametimerdata', gametimer);
-        if (gametimer <= 0) {
-            name = prompt("あなたの名前を「半角英数字」で入力してください");
-            socket.emit('gamefinish');
+        {
+            var posx = ($('#canvas').width() / 2) - 96;
+            var posy = 16;
+            txtDisplay(ctx, "TIME:" + gametimer, posx, posy, 34, 'FFFFFF');
         }
-
-        txtDisplay(ctx, "" + gametimer, 100, 100, 24, 'FFFFFF');
     }
 
     function txtDisplay(ctx, txt, tx, ty, tsize, textcolor){
