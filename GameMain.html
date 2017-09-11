@@ -28,9 +28,25 @@
 <script src="/js/MyInput.js"></script>
 <script>
 
+
+    var assetloadnum = 0;
+    var assetmaxnum = 2;
+
     var socket = io();
-    var bg = new Image();
-    bg.src = "image/GameBG.png";
+
+
+    var bg;
+    var title_img;
+
+    var bg_file = "image/GameBG.png";
+    var title_img_file = "image/alien_Title.png";
+
+    var name = null;
+
+    var firstfrag = false;
+
+    //0がタイトル　1ゲームメイン　2リザルト（未定）
+    var gamemode = 0;
 
     //ゲームの残り時間
     var gametimer = 180 * 60;
@@ -67,16 +83,31 @@
         input.clickStatus = false;
     }
 
-    window.onload = function(){
+    window.onload = function () {
 
         //画面枠を最大サイズにする（初期状態の大きさなので実行中に大きさ変えるとバグる）
         var w = $('.wrapper').width();
         var h = $('.wrapper').height();
-        $('#canvas').attr('width' , w);
+        $('#canvas').attr('width', w);
         $('#canvas').attr('height', h);
 
         input.init();
-	}
+
+        bg = new Image();
+        bg.src = bg_file;
+        bg.onload = function () {
+            assetloadnum++;
+        }
+
+        title_img = new Image();
+        title_img.src = title_img_file;
+        title_img.onload = function () {
+            assetloadnum++;
+        }
+
+        renderer_canvas();
+
+    }
 
     //終了時
     window.onbeforeunload = function(){
@@ -84,14 +115,48 @@
     }
 
 
-    var renderer_canvas = function(){
+    var renderer_canvas = function () {
 
-        var canvas = $("#canvas").get(0);
-        var ctx = canvas.getContext('2d');
-        ctx.drawImage(bg, 0, 0, $('#canvas').width(), $('#canvas').height());
 
+        if (assetloadnum == assetmaxnum);
+        {
+            var canvas = $("#canvas").get(0);
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(bg, 0, 0, $('#canvas').width(), $('#canvas').height());
+
+            switch (gamemode) {
+                case 0: TitleUpdate(ctx); break;
+                case 1: MainUpdate(ctx); break;
+            }
+        }
+
+        progress_timer = setTimeout("renderer_canvas()", 16);
+    }
+
+    function TitleUpdate(ctx) {
+
+        var posx = ($('#canvas').width() / 2) - 370;
+        var posy = ($('#canvas').height() / 2) - 100;
+        ctx.drawImage(title_img,0,0,745,121,posx,posy,745,121);
+        if (!firstfrag) {
+            setTimeout(function () {
+                do{
+                    name = prompt("あなたの名前を「半角英数字」で入力してください");
+                    if (!name.match(/^[a-zA-Z0-9]{1,}$/)) {
+                        name = null;
+                    }
+                } while (name === null)
+                socket.emit('playerjoin');
+                gamemode = 1; // Gameメインへ
+            }, 100);
+            firstfrag = true;
+        }
+    }
+
+    function MainUpdate(ctx)
+    {
         //ローカルプレイヤーのみ更新
-        if(players[currentid])players[currentid].update(input);
+        if (players[currentid]) players[currentid].update(input);
         //全ての連想配列の描画処理を実行
         for (var key in players) {
             players[key].draw(ctx);
@@ -100,16 +165,15 @@
         //後に更新
         input.rateUpdate();
         //他のサーバーにキャラが移動することを送信
-        if(players[currentid])socket.emit('sendplayerupdate', players[currentid]);
+        if (players[currentid]) socket.emit('sendplayerupdate', players[currentid]);
         gametimer--;
         socket.emit('gametimerdata', gametimer);
-        if(gametimer <= 0)
-        {
+        if (gametimer <= 0) {
+            name = prompt("あなたの名前を「半角英数字」で入力してください");
             socket.emit('gamefinish');
         }
 
-        txtDisplay(ctx,""+gametimer,100,100,24,'FFFFFF');
-        progress_timer = setTimeout("renderer_canvas()", 16);
+        txtDisplay(ctx, "" + gametimer, 100, 100, 24, 'FFFFFF');
     }
 
     function txtDisplay(ctx, txt, tx, ty, tsize, textcolor){
@@ -124,75 +188,54 @@
 				}
 	}
 
-$(function () {
-    var name   = null;
-	//-----------------------
-	// ユーザー名の入力を求める
-	//-----------------------
-	do{
-		name = prompt("あなたの名前を「半角英数字」で入力してください");
-		if(! name.match(/^[a-zA-Z0-9]{1,}$/)){
-			name = null;
-		}
-	} while(name===null);
+    $(function () {
 
-    //名前を入力したら入場宣言
-    socket.emit('playerjoin');
-
-    renderer_canvas();
-
-    //---------------終了-------------------------------------------------
+        //---------------終了-------------------------------------------------
 
 
-    //if(!players[playerdata.id]) そのIDを持つものは存在するか？の意味
+        //if(!players[playerdata.id]) そのIDを持つものは存在するか？の意味
 
-    //プレイヤーが入ってきた時の処理
-    socket.on('playerjoin', function(numid){
-        console.log("join");
-        //新しいプレイヤーを生成する
-        players[numid] = new Player(numid, "image/player.png", MathExtension.random(0,$('#canvas').width()), MathExtension.random(0,$('#canvas').height()), 30);
-        if(currentid == null) currentid = numid;
-        //最新のユーザーでない場合自分の場所を最新のユーザーに伝えて生成させる
-        else socket.emit('gameinit',players[currentid]);
-	});
+        //プレイヤーが入ってきた時の処理
+        socket.on('playerjoin', function (numid) {
+            console.log("join");
+            //新しいプレイヤーを生成する
+            players[numid] = new Player(numid, "image/player.png", MathExtension.random(0, $('#canvas').width()), MathExtension.random(0, $('#canvas').height()), 30);
+            if (currentid == null) currentid = numid;
+                //最新のユーザーでない場合自分の場所を最新のユーザーに伝えて生成させる
+            else socket.emit('gameinit', players[currentid]);
+        });
 
-    //他のユーザーを出現生成させる
-    socket.on('gameinit', function(playerdata)
-    {
-        if(!players[playerdata.id])
-        {
-             players[playerdata.id] = new Player(playerdata.id, "image/player.png", playerdata.pos_x , playerdata.pos_y, playerdata.angle);
-        }
-	})
+        //他のユーザーを出現生成させる
+        socket.on('gameinit', function (playerdata) {
+            if (!players[playerdata.id]) {
+                players[playerdata.id] = new Player(playerdata.id, "image/player.png", playerdata.pos_x, playerdata.pos_y, playerdata.angle);
+            }
+        })
 
-    //ゲーム終了が通告されたら
-    socket.on('gamefinish', function(inittime)
-    {
-        gametimer =inittime;
-	})
+        //ゲーム終了が通告されたら
+        socket.on('gamefinish', function (inittime) {
+            gametimer = inittime;
+        })
 
-    //だれかがゲームから抜けた
-    socket.on('gameend', function(exitid)
-    {
-        delete players[exitid];
-	})
+        //だれかがゲームから抜けた
+        socket.on('gameend', function (exitid) {
+            delete players[exitid];
+        })
 
-    //ゲーム時間のアップデート
-	socket.on('gametimerdata', function(timerdata)
-    {
-        gametimer = timerdata;
-	});
+        //ゲーム時間のアップデート
+        socket.on('gametimerdata', function (timerdata) {
+            gametimer = timerdata;
+        });
 
-    //プレイヤーのアップデート
-	socket.on('sendplayerupdate', function(playerdata){
-        if(players[playerdata.id])
-        {
-            players[playerdata.id].receiveMove(playerdata.id,playerdata.pos_x,playerdata.pos_y);
-            players[playerdata.id].receiverotate(playerdata.angle);
-        }
-	});
+        //プレイヤーのアップデート
+        socket.on('sendplayerupdate', function (playerdata) {
+            if (players[playerdata.id]) {
+                players[playerdata.id].receiveMove(playerdata.id, playerdata.pos_x, playerdata.pos_y);
+                players[playerdata.id].receiverotate(playerdata.angle);
+            }
+        });
 
-});
+    });
 </script>
 </body>
 </html>
