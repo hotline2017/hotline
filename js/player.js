@@ -10,7 +10,7 @@ var Player = function(id, file_name, pos_x, pos_y, angle)
 {
     this.id         = id;
     this.image      = new Image();
-    this.image.src  = "image/player0.png";
+    this.image.src  = file_name + id + ".png";
     this.pos_x      = pos_x;
     this.pos_y      = pos_y;
     this.startX     = pos_x;
@@ -65,13 +65,16 @@ Player.prototype =
 
     draw          : function(ctx)
     {
-        ctx.save();
-        ctx.translate(this.pos_x, this.pos_y);
-        ctx.rotate(this.angle);
+        if(this.is_alive)
+        {
+            ctx.save();
+            ctx.translate(this.pos_x, this.pos_y);
+            ctx.rotate(this.angle);
 
-        ctx.drawImage(this.image, 0, 0, 45, 60, -22.5, -30, 45, 60);
+            ctx.drawImage(this.image, 0, 0, 45, 60, -22.5, -30, 45, 60);
 
-        ctx.restore();
+            ctx.restore();
+        }
 
         for(var i = 0; i < this.bulletCollection.length; i++)
         {
@@ -99,7 +102,7 @@ Player.prototype =
         this.angle = Math.atan2(dir_y, dir_x) + Math.PI / 2;
     },
 
-    receiveRotate : function(angle)
+    receiverotate : function(angle)
     {
         this.angle = MathExtension.lerp(this.angle, angle, 0.25);
     },
@@ -116,5 +119,53 @@ Player.prototype =
 
         this.pos_x = MathExtension.clamp(this.pos_x, left, right );
         this.pos_y = MathExtension.clamp(this.pos_y, top,  bottom);
+    },
+
+    collision : function(other)
+    {
+        if(other.id == this.id) { return; }
+        if(!this .is_alive)     { return; }
+        if(!other.is_alive)     { return; }
+
+        var r = 20;
+
+        var dx = this.pos_x - other.pos_x;
+        var dy = this.pos_y - other.pos_y;
+
+        if(Math.hypot(dx, dy) <= r+r)
+        {
+            //衝突
+            this.is_alive  = false;
+            other.is_alive = false;
+
+            return;
+        }
+
+        var br = 10;
+        for(var i = 0; i < other.bulletCollection.length; i++)
+        {
+            var ob = other.bulletCollection[i];
+            var dx = this.pos_x - ob.pos_x;
+            var dy = this.pos_y - ob.pos_y;
+
+            if(Math.hypot(dx, dy) <= r + br)
+            {
+                this.is_alive = false;
+                return;
+            }
+        }
+
+        for(var i = 0; i < this.bulletCollection.length; i++)
+        {
+            var sb = this.bulletCollection[i];
+            var dx = other.pos_x - sb.pos_x;
+            var dy = other.pos_y - sb.pos_y;
+            
+            if(Math.hypot(dx, dy) <= r + br)
+            {
+                other.is_alive = false;
+                return;
+            }
+        }
     }
 }
