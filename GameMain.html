@@ -18,7 +18,7 @@
   .form
   {
     position: absolute;
-    left: 300px;
+    left: 475px;
     top: 400px;
     font-size:  32px;
     text-align: center;
@@ -32,7 +32,7 @@
 </div>
 <form id="input" class="form" onsubmit="return false;">
     名前を入力してください<br>
-    <input input type="text" style="width: 500px; height: 32px; font-size:  32px;"/>
+    <input input type="text" style="width: 500; height: 32px; font-size:  32px;"/>
 <form/>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -102,8 +102,6 @@
 
     window.onload = function () {
 
-        audioElem.src = "./sound/PlayBGM.mp3";
-        audioElem.play();
         //画面枠を最大サイズにする（初期状態の大きさなので実行中に大きさ変えるとバグる）
         var w = $('.wrapper').width();
         var h = $('.wrapper').height();
@@ -123,6 +121,9 @@
         title_img.onload = function () {
             assetloadnum++;
         }
+
+        audioElem.src = "./sound/TitleBGM.mp3";
+        audioElem.play();
 
         renderer_canvas();
 
@@ -164,6 +165,9 @@
 	        node.parentNode.removeChild(node);
 
             //if(name = null)
+            audioElem.src = "./sound/PlayBGM.mp3";
+            audioElem.play();
+
             socket.emit('playerjoin');
             gamemode = 1;
         }
