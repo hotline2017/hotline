@@ -10,7 +10,7 @@ var Player = function(id, file_name, pos_x, pos_y, angle)
 {
     this.id         = id;
     this.image      = new Image();
-    this.image.src  = file_name;
+    this.image.src  = "image/player0.png";
     this.pos_x      = pos_x;
     this.pos_y      = pos_y;
     this.startX     = pos_x;
@@ -18,6 +18,8 @@ var Player = function(id, file_name, pos_x, pos_y, angle)
     this.angle      = angle;
     this.is_alive   = true;
     
+    this.killCount  = 0;
+    this.deathCount = 0;
     this.bulletCollection = new Array();
 };
 
@@ -38,6 +40,7 @@ Player.prototype =
         if(input.keydown(key_left )) { vecX -= 10; }
         if(input.keydown(key_right)) { vecX += 10; }
 
+        this.clampPosition();
         var maxBulletCount = 2;
 
         if(input.isMousedown() && 
@@ -66,7 +69,6 @@ Player.prototype =
         ctx.translate(this.pos_x, this.pos_y);
         ctx.rotate(this.angle);
 
-        ctx.fillStyle = ""
         ctx.drawImage(this.image, 0, 0, 45, 60, -22.5, -30, 45, 60);
 
         ctx.restore();
@@ -102,8 +104,17 @@ Player.prototype =
         this.angle = MathExtension.lerp(this.angle, angle, 0.25);
     },
 
-    getColor : function()
+    clampPosition : function()
     {
+        var w = $('#canvas').width();
+        var h = $('#canvas').height();
 
+        var left   =     45;
+        var right  = w - 45;
+        var top    =     124;   // 64 + 60
+        var bottom = h - 60;
+
+        this.pos_x = MathExtension.clamp(this.pos_x, left, right );
+        this.pos_y = MathExtension.clamp(this.pos_y, top,  bottom);
     }
 }
