@@ -15,15 +15,20 @@ var Bullet = function(id, pos_x, pos_y, angle)
     this.vel_x     = Math.cos(angle - Math.PI / 2) ;
     this.vel_y     = Math.sin(angle - Math.PI / 2) ;
     this.is_alive  = true;
-    this.speed     = 1;
+    this.speed     = 5;
 };
 
 Bullet.prototype =
 {
     update        : function(input)
     {
-        this.pos_x += this.vel_x;
-        this.pos_y += this.vel_y;
+        this.pos_x += this.vel_x*this.speed;
+        this.pos_y += this.vel_y*this.speed;
+
+        //画面外に出たら消す
+        //if(){
+          //this.is_alive=0;
+        //}
     },
 
     draw          : function(ctx)
@@ -46,16 +51,4 @@ Bullet.prototype =
         this.pos_x = MathExtension.lerp(this.pos_x, x_position, 0.25);
         this.pos_y = MathExtension.lerp(this.pos_y, y_position, 0.25);
     },
-
-    //rotate        : function(mouse_x, mouse_y)
-    //{
-      //  var dir_x = mouse_x - this.pos_x;
-      //  var dir_y = mouse_y - this.pos_y;
-            //  this.angle = Math.atan2(dir_y, dir_x) + Math.PI / 2;
-    //},
-
-    //receiverotate : function(angle)
-    //{
-    //    this.angle = MathExtension.lerp(this.angle, angle, 0.25);
-    //}
 }
