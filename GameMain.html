@@ -14,14 +14,26 @@
     height  : 100%;
     position: fixed;
   }
+
+  .form
+  {
+    position: absolute;
+    left: 300px;
+    top: 400px;
+    font-size:  32px;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
-
 <div class="wrapper">
 <canvas id="canvas">
 </canvas>
 </div>
+<form id="input" class="form" onsubmit="return false;">
+    名前を入力してください<br>
+    <input input type="text" style="width: 500px; height: 32px; font-size:  32px;"/>
+<form/>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/jquery.min.js"></script>
@@ -90,7 +102,7 @@
 
     window.onload = function () {
 
-        audioElem.src = "./sound/TitleBGM.mp3";
+        audioElem.src = "./sound/PlayBGM.mp3";
         audioElem.play();
         //画面枠を最大サイズにする（初期状態の大きさなので実行中に大きさ変えるとバグる）
         var w = $('.wrapper').width();
@@ -144,21 +156,33 @@
         var posx = ($('#canvas').width() / 2) - 370;
         var posy = ($('#canvas').height() / 2) - 100;
         ctx.drawImage(title_img,0,0,745,121,posx,posy,745,121);
-        if (!firstfrag) {
-            setTimeout(function () {
-                do{
-                    name = prompt("あなたの名前を「半角英数字」で入力してください");
-                    if (!name.match(/^[a-zA-Z0-9]{1,}$/)) {
-                        name = null;
-                    }
-                } while (name === null)
-                socket.emit('playerjoin');
-                gamemode = 1; // Gameメインへ
-                //audioElem.src = "sound/PlayBGM.mp3";
-                //audioElem.play();
-            }, 100);
-            firstfrag = true;
+
+        //エンターキー
+        if(input.isKeydown(13))
+        {
+            var node = document.getElementById('input');
+	        node.parentNode.removeChild(node);
+
+            //if(name = null)
+            socket.emit('playerjoin');
+            gamemode = 1;
         }
+        name =null;
+        // if (!firstfrag) {
+        //     setTimeout(function () {
+        //         do{
+        //             name = prompt("あなたの名前を「半角英数字」で入力してください");
+        //             if (!name.match(/^[a-zA-Z0-9]{1,}$/)) {
+        //                 name = null;
+        //             }
+        //         } while (name === null)
+        //         socket.emit('playerjoin');
+        //         gamemode = 1; // Gameメインへ
+        //         //audioElem.src = "sound/PlayBGM.mp3";
+        //         //audioElem.play();
+        //     }, 100);
+        //     firstfrag = true;
+        // }
     }
 
     function MainUpdate(ctx)
