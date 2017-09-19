@@ -8,7 +8,7 @@ var Bullet = function(id, pos_x, pos_y, angle)
 {
     this.id        = id;
     this.image     = new Image();
-    this.image.src = "image/chalk.png";
+    this.image.src = "image/chalk" + id + ".png";
     this.pos_x     = pos_x;
     this.pos_y     = pos_y;
     this.angle     = angle;

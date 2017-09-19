@@ -198,6 +198,14 @@
             players[key].draw(ctx);
         }
 
+        for(var key1 in players)
+        {
+            for(var key2 in players)
+            {
+                players[key1].collision(players[key2]);
+            }
+        }
+
         //後に更新
         input.rateUpdate();
         //他のサーバーにキャラが移動することを送信
@@ -234,7 +242,7 @@
         socket.on('playerjoin', function (numid) {
             console.log("join");
             //新しいプレイヤーを生成する
-            players[numid] = new Player(numid, "image/player.png", MathExtension.random(0, $('#canvas').width()), MathExtension.random(0, $('#canvas').height()), 30);
+            players[numid] = new Player(numid, "image/player", MathExtension.random(0, $('#canvas').width()), MathExtension.random(0, $('#canvas').height()), 30);
             if (currentid == null) currentid = numid;
                 //最新のユーザーでない場合自分の場所を最新のユーザーに伝えて生成させる
             else socket.emit('gameinit', players[currentid]);
@@ -243,7 +251,7 @@
         //他のユーザーを出現生成させる
         socket.on('gameinit', function (playerdata) {
             if (!players[playerdata.id]) {
-                players[playerdata.id] = new Player(playerdata.id, "image/player.png", playerdata.pos_x, playerdata.pos_y, playerdata.angle);
+                players[playerdata.id] = new Player(playerdata.id, "image/player", playerdata.pos_x, playerdata.pos_y, playerdata.angle);
             }
         })
 
@@ -266,7 +274,16 @@
         socket.on('sendplayerupdate', function (playerdata) {
             if (players[playerdata.id]) {
                 players[playerdata.id].receiveMove(playerdata.id, playerdata.pos_x, playerdata.pos_y);
-                players[playerdata.id].receiverotate(playerdata.angle);
+                players[playerdata.id].receiveRotate(playerdata.angle);
+            }
+        });
+        
+        //だれかが弾を撃った
+        socket.on('sendplayershot', function(playerdata)
+        {
+            if(players[playerdata.id])
+            {
+                players[playerdata.id].receiveShot(playerdata.pos_x, playerdata.pos_y, playerdata.angle);
             }
         });
 

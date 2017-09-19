@@ -47,8 +47,17 @@ Player.prototype =
            this.bulletCollection.length < maxBulletCount)
         {
             this.bulletCollection.push(new Bullet(this.id, this.pos_x, this.pos_y, this.angle));
+            socket.emit('sendplayershot', this);
         }
 
+        this.bulletUpdate();
+
+        this.localMove(vecX, vecY);
+        this.localRotate(input.mouse_x, input.mouse_y);
+    },
+
+    bulletUpdate : function()
+    {
         for(var i = 0; i < this.bulletCollection.length; i++)
         {
             this.bulletCollection[i].update();
@@ -57,10 +66,6 @@ Player.prototype =
                 this.bulletCollection.splice(i, 1);
             }
         }
-
-        this.localMove(vecX, vecY);
-        this.localRotate(input.mouse_x, input.mouse_y);
-
     },
 
     draw          : function(ctx)
@@ -94,7 +99,7 @@ Player.prototype =
         this.pos_y = MathExtension.lerp(this.pos_y, y_position, 0.25);
     },
 
-    localRotate        : function(mouse_x, mouse_y)
+    localRotate   : function(mouse_x, mouse_y)
     {
         var dir_x = mouse_x - this.pos_x;
         var dir_y = mouse_y - this.pos_y;
@@ -102,9 +107,14 @@ Player.prototype =
         this.angle = Math.atan2(dir_y, dir_x) + Math.PI / 2;
     },
 
-    receiverotate : function(angle)
+    receiveRotate : function(angle)
     {
         this.angle = MathExtension.lerp(this.angle, angle, 0.25);
+    },
+
+    receiveShot   : function(pos_x, pos_y, angle)
+    {
+        this.bulletCollection.push(new Bullet(this.id, pos_x, pos_y, angle));
     },
 
     clampPosition : function()
@@ -161,6 +171,7 @@ Player.prototype =
             var dx = other.pos_x - sb.pos_x;
             var dy = other.pos_y - sb.pos_y;
             
+            //斜辺を求める
             if(Math.hypot(dx, dy) <= r + br)
             {
                 other.is_alive = false;

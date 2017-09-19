@@ -90,6 +90,11 @@ io.on('connection', function(socket){
     }
   });
 
+  socket.on('sendplayershot',function(playerdata)
+  {
+    io.emit('sendplayershot', playerdata);
+  });
+
   //切断
   socket.on('disconnect', function(){
     console.log('user disconnected player_count:'+player_num);
