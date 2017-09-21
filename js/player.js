@@ -133,6 +133,10 @@ Player.prototype =
 
     dead          : function()
     {
+        if(this.returnTime <= 0)
+        {
+            this.returnTime = 180;
+        }
         this.is_alive = false;
     },
 
