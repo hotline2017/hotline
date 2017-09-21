@@ -190,8 +190,16 @@
     function MainUpdate(ctx)
     {
         //ローカルプレイヤーのみ更新
-        if (players[currentid]) players[currentid].update(input);
-        
+        if (players[currentid]) 
+        {
+            players[currentid].update(input);
+            if((gametimer % 5) == 0)
+            {
+                socket.emit('sendalivestate', currentid, players[currentid].is_alive);
+            }
+        }
+
+
         //全ての連想配列の描画処理を実行
         for (var key in players) {
             players[key].draw(ctx);
@@ -307,8 +315,6 @@
 
         socket.on('sendplayerdeath', function(playerdata)
         {
-            if(playerdata.id == currentid) { return; }
-
             if(players[playerdata.id])
             {
                 players[playerdata.id].dead();
@@ -322,6 +328,16 @@
             if(players[playerdata.id])
             {
                 players[playerdata.id].respawn();
+            }
+        });
+
+        socket.on('sendalivestate', function(id, is_alive)
+        {
+            if(id == currentid) { return; }
+
+            if(players[id])
+            {
+                players[id].is_alive = is_alive;
             }
         });
 

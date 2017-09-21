@@ -113,6 +113,11 @@ io.on('connection', function(socket){
     io.emit('sendplayerrespawn', playerdata);
   });
 
+  socket.on('sendalivestate', function(id, is_alive)
+  {
+    io.emit('sendalivestate', id, is_alive);
+  });
+
   //切断
   socket.on('disconnect', function(){
     console.log('user disconnected player_count:'+player_num);
