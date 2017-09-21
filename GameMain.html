@@ -127,8 +127,9 @@
     }
 
     //終了時
-    window.addEventListener('beforeunload', function(){
-        socket.emit('gameend',currentid);
+    window.addEventListener('beforeunload', function (e) {
+        e.returnValue = "終了しますか？";
+        socket.emit('gameend', currentid);
     });
 
 
@@ -215,6 +216,11 @@
             var posy = 16;
             txtDisplay(ctx, "TIME:" + gametimer, posx, posy, 34, 'FFFFFF');
         }
+
+        if(gametimer <= 0)
+        {
+            socket.emit("gamefinish");
+        }
     }
 
     function txtDisplay(ctx, txt, tx, ty, tsize, textcolor){
@@ -238,6 +244,7 @@
 
         //プレイヤーが入ってきた時の処理
         socket.on('playerjoin', function (numid) {
+            if (gamemode == 0) return;
             console.log("join");
             //新しいプレイヤーを生成する
             players[numid] = new Player(numid, "image/player", MathExtension.random(0, $('#canvas').width()), MathExtension.random(0, $('#canvas').height()), 30);
