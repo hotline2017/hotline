@@ -8,19 +8,20 @@ document.write('<script type="text/javascript" language="JavaScript" src="js/bul
 //----- ----- ----- -----
 var Player = function(id, file_name, pos_x, pos_y, angle)
 {
-    this.id         = id;
-    this.image      = new Image();
-    this.image.src  = file_name + id + ".png";
-    this.pos_x      = pos_x;
-    this.pos_y      = pos_y;
-    this.startX     = pos_x;
-    this.startY     = pos_y;
-    this.angle      = angle;
-    this.is_alive   = true;
+    this.id             = id;
+    this.image          = new Image();
+    this.image.src      = file_name + id + ".png";
+    this.pos_x          = pos_x;
+    this.pos_y          = pos_y;
+    this.startX         = pos_x;
+    this.startY         = pos_y;
+    this.angle          = angle;
+    this.is_alive       = true;
+    this.invincibleTime = 90; 
     
-    this.killCount  = 0;
-    this.deathCount = 0;
-    this.returnTime = 0;
+    this.killCount      = 0;
+    this.deathCount     = 0;
+    this.returnTime     = 0;
     this.bulletCollection = new Array();
 };
 
@@ -50,10 +51,9 @@ Player.prototype =
         this.localRotate(input.mouse_x, input.mouse_y);
 
         if(input.isMousedown() && 
+           this.is_alive       &&
            this.bulletCollection.length < maxBulletCount)
         {
-            //alert(this.angle);
-
             this.bulletCollection.push(new Bullet(this.id, this.pos_x, this.pos_y, this.angle));
             socket.emit('sendplayershot', this);
         }
@@ -64,10 +64,17 @@ Player.prototype =
             this.pos_x = this.startX;
             this.pos_y = this.startY;
             this.is_alive = true;
+            this.invincibleTime = 90;
             socket.emit('sendplayerrespawn', this);
-        }
-
+        }                              
+        
+        this.invincibleTime--;
         this.localMove(vecX, vecY);
+    },
+
+    serverUpdate : function()
+    {
+        this.invincibleTime--;
     },
 
     bulletUpdate : function()
@@ -90,6 +97,10 @@ Player.prototype =
             ctx.translate(this.pos_x, this.pos_y);
             ctx.rotate(this.angle);
 
+            if(this.invincibleTime > 0)
+            {
+                ctx.globalAlpha = 0.5; 
+            }
             ctx.drawImage(this.image, 0, 0, 45, 60, -22.5, -30, 45, 60);
 
             ctx.restore();
@@ -140,7 +151,12 @@ Player.prototype =
         this.is_alive = false;
     },
 
-    respawn       :function()
+    bulletErase   : function(index)
+    {
+        this.bulletCollection[index].is_alive = false;
+    },
+
+    respawn       : function()
     {
         this.pos_x = this.startX;
         this.pos_y = this.startY;
@@ -170,7 +186,8 @@ Player.prototype =
         var dx = this.pos_x - other.pos_x;
         var dy = this.pos_y - other.pos_y;
         
-        if(this.is_alive && other.is_alive)
+        if(this .is_alive && this .invincibleTime <= 0 && 
+           other.is_alive && other.invincibleTime <= 0)
         {
             if(Math.hypot(dx, dy) <= r+r)
             {
@@ -189,7 +206,7 @@ Player.prototype =
         }
 
         var br = 10;
-        if(this.is_alive)
+        if(this.is_alive && this .invincibleTime <= 0)
         {
             for(var i = 0; i < other.bulletCollection.length; i++)
             {
@@ -204,12 +221,15 @@ Player.prototype =
                     this.returnTime = 180;
                     other.killCount ++;
                     socket.emit('sendplayerdeath', this);
+
+                    other.bulletCollection[i].is_alive = false;
+                    socket.emit('bulletdeath', other.id, i);
                     return;
                 }
             }
         }
 
-        if(other.is_alive)
+        if(other.is_alive && other.invincibleTime <= 0)
         {
             for(var i = 0; i < this.bulletCollection.length; i++)
             {
@@ -225,6 +245,9 @@ Player.prototype =
                     other.returnTime = 180;
                     this.killCount ++;
                     socket.emit('sendplayerdeath', other);
+
+                    this.bulletCollection[i].is_alive = false;
+                    socket.emit('bulletdeath', this.id, i);
                     return;
                 }
             }

@@ -38,6 +38,7 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/jquery.min.js"></script>
 <script src="/js/player.js"></script>
+<script src="/js/site.js"></script>
 <script src="/js/MathExtension.js"></script>
 <script src="/js/MyInput.js"></script>
 <script>
@@ -45,7 +46,6 @@
     var assetmaxnum = 2;
 
     var socket = io();
-
 
     var bg;
     var title_img;
@@ -71,6 +71,8 @@
     var input = new MyInput();
 
     var audioElem = new Audio();
+
+    var sites   = new Array();
 
     window.onkeydown   = function(e)
     {
@@ -152,7 +154,7 @@
 
     function TitleUpdate(ctx) {
 
-        var posx = ($('#canvas').width() / 2) - 370;
+        var posx = ($('#canvas').width () / 2) - 370;
         var posy = ($('#canvas').height() / 2) - 100;
         ctx.drawImage(title_img,0,0,745,121,posx,posy,745,121);
 
@@ -199,10 +201,14 @@
             }
         }
 
-
-        //全ての連想配列の描画処理を実行
-        for (var key in players) {
-            players[key].draw(ctx);
+        //他のサーバーにキャラが移動することを送信
+        if (players[currentid]) socket.emit('sendplayerupdate', players[currentid]);
+        gametimer--;
+        socket.emit('gametimerdata', gametimer);
+        {
+            var posx = ($('#canvas').width() / 2) - 96;
+            var posy = 16;
+            txtDisplay(ctx, "TIME:" + gametimer, posx, posy, 34, 'FFFFFF');
         }
 
         for(var key1 in players)
@@ -213,17 +219,18 @@
             }
         }
 
+        for(var key in sites)
+        {
+            sites[key].draw(ctx);
+        }
+
+        //全ての連想配列の描画処理を実行
+        for (var key in players) {
+            players[key].draw(ctx);
+        }
+        
         //後に更新
         input.rateUpdate();
-        //他のサーバーにキャラが移動することを送信
-        if (players[currentid]) socket.emit('sendplayerupdate', players[currentid]);
-        gametimer--;
-        socket.emit('gametimerdata', gametimer);
-        {
-            var posx = ($('#canvas').width() / 2) - 96;
-            var posy = 16;
-            txtDisplay(ctx, "TIME:" + gametimer, posx, posy, 34, 'FFFFFF');
-        }
 
         if(gametimer <= 0)
         {
@@ -288,6 +295,7 @@
             if(playerdata.id == currentid) { return; }
 
             if (players[playerdata.id]) {
+                players[playerdata.id].serverUpdate();
                 players[playerdata.id].receiveMove(playerdata.id, playerdata.pos_x, playerdata.pos_y);
                 players[playerdata.id].receiveRotate(playerdata.angle);
             }
@@ -299,6 +307,16 @@
             if(players[playerdata.id])
             {
                 players[playerdata.id].bulletUpdate();
+            }
+        });
+
+        socket.on('bulletdeath', function(id, bulletIndex)
+        {
+            if(id == currentid) { return; }
+
+            if(players[id])
+            {
+                players[id].bulletErase(bulletIndex);
             }
         });
         
@@ -317,6 +335,7 @@
         {
             if(players[playerdata.id])
             {
+                sites.push(new Site(playerdata.id, playerdata.pos_x, playerdata.pos_y));
                 players[playerdata.id].dead();
             }
         });
@@ -340,7 +359,6 @@
                 players[id].is_alive = is_alive;
             }
         });
-
     });
 </script>
 </body>

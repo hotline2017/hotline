@@ -39,7 +39,7 @@ app.get('/sound/:file', function (req, res) {
 app.get('/js/:file', function(req, res){
   res.sendFile(__dirname + '/js/' + req.params.file);
 });
-http.listen(3000, function(){
+http.listen(process.env.PORT || 3000, function(){
   console.log('listening on *:3000');
 });
 
@@ -99,6 +99,11 @@ io.on('connection', function(socket){
   socket.on('bulletupdate', function(playerdata)
   {
     io.emit('bulletupdate', playerdata);
+  });
+
+  socket.on('bulletdeath', function(id, bulletIndex)
+  {
+    io.emit('bulletdeath', id, bulletIndex);
   });
 
   //だれかが死んだ
