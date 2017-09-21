@@ -20,6 +20,7 @@ var Player = function(id, file_name, pos_x, pos_y, angle)
     
     this.killCount  = 0;
     this.deathCount = 0;
+    this.returnTime = 0;
     this.bulletCollection = new Array();
 };
 
@@ -43,17 +44,30 @@ Player.prototype =
         this.clampPosition();
         var maxBulletCount = 2;
 
+        this.bulletUpdate();
+        socket.emit('bulletupdate', this);
+
+        this.localRotate(input.mouse_x, input.mouse_y);
+
         if(input.isMousedown() && 
            this.bulletCollection.length < maxBulletCount)
         {
+            //alert(this.angle);
+
             this.bulletCollection.push(new Bullet(this.id, this.pos_x, this.pos_y, this.angle));
             socket.emit('sendplayershot', this);
         }
 
-        this.bulletUpdate();
+        this.returnTime--;
+        if(this.returnTime <= 0 && !this.is_alive)
+        {
+            this.pos_x = this.startX;
+            this.pos_y = this.startY;
+            this.is_alive = true;
+            socket.emit('sendplayerrespawn', this);
+        }
 
         this.localMove(vecX, vecY);
-        this.localRotate(input.mouse_x, input.mouse_y);
     },
 
     bulletUpdate : function()
@@ -117,6 +131,18 @@ Player.prototype =
         this.bulletCollection.push(new Bullet(this.id, pos_x, pos_y, angle));
     },
 
+    dead          : function()
+    {
+        this.is_alive = false;
+    },
+
+    respawn       :function()
+    {
+        this.pos_x = this.startX;
+        this.pos_y = this.startY;
+        this.is_alive = true;
+    },
+
     clampPosition : function()
     {
         var w = $('#canvas').width();
@@ -134,48 +160,69 @@ Player.prototype =
     collision : function(other)
     {
         if(other.id == this.id) { return; }
-        if(!this .is_alive)     { return; }
-        if(!other.is_alive)     { return; }
 
         var r = 20;
 
         var dx = this.pos_x - other.pos_x;
         var dy = this.pos_y - other.pos_y;
-
-        if(Math.hypot(dx, dy) <= r+r)
+        
+        if(this.is_alive && other.is_alive)
         {
-            //衝突
-            this.is_alive  = false;
-            other.is_alive = false;
-
-            return;
-        }
-
-        var br = 10;
-        for(var i = 0; i < other.bulletCollection.length; i++)
-        {
-            var ob = other.bulletCollection[i];
-            var dx = this.pos_x - ob.pos_x;
-            var dy = this.pos_y - ob.pos_y;
-
-            if(Math.hypot(dx, dy) <= r + br)
+            if(Math.hypot(dx, dy) <= r+r)
             {
-                this.is_alive = false;
+                //衝突
+                this .is_alive = false;
+                other.is_alive = false;
+
+                this .deathCount++;
+                this .returnTime = 180; //3 second
+                other.deathCount++;
+                other.returnTime = 180; //3 second
+                socket.emit('sendplayerdeath', this);
+                socket.emit('sendplayerdeath', other);
                 return;
             }
         }
 
-        for(var i = 0; i < this.bulletCollection.length; i++)
+        var br = 10;
+        if(this.is_alive)
         {
-            var sb = this.bulletCollection[i];
-            var dx = other.pos_x - sb.pos_x;
-            var dy = other.pos_y - sb.pos_y;
-            
-            //斜辺を求める
-            if(Math.hypot(dx, dy) <= r + br)
+            for(var i = 0; i < other.bulletCollection.length; i++)
             {
-                other.is_alive = false;
-                return;
+                var ob = other.bulletCollection[i];
+                var dx = this.pos_x - ob.pos_x;
+                var dy = this.pos_y - ob.pos_y;
+
+                if(Math.hypot(dx, dy) <= r + br)
+                {
+                    this.is_alive   = false;
+                    this.deathCount++;
+                    this.returnTime = 180;
+                    other.killCount ++;
+                    socket.emit('sendplayerdeath', this);
+                    return;
+                }
+            }
+        }
+
+        if(other.is_alive)
+        {
+            for(var i = 0; i < this.bulletCollection.length; i++)
+            {
+                var sb = this.bulletCollection[i];
+                var dx = other.pos_x - sb.pos_x;
+                var dy = other.pos_y - sb.pos_y;
+                
+                //斜辺を求める
+                if(Math.hypot(dx, dy) <= r + br)
+                {
+                    other.is_alive = false;
+                    other.deathCount++;
+                    other.returnTime = 180;
+                    this.killCount ++;
+                    socket.emit('sendplayerdeath', other);
+                    return;
+                }
             }
         }
     }

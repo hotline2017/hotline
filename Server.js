@@ -90,9 +90,27 @@ io.on('connection', function(socket){
     }
   });
 
+  //だれかが弾を撃った
   socket.on('sendplayershot',function(playerdata)
   {
     io.emit('sendplayershot', playerdata);
+  });
+
+  socket.on('bulletupdate', function(playerdata)
+  {
+    io.emit('bulletupdate', playerdata);
+  });
+
+  //だれかが死んだ
+  socket.on('sendplayerdeath', function(playerdata)
+  {
+    io.emit('sendplayerdeath', playerdata);
+  });
+
+  //だれかが復活した
+  socket.on('sendplayerrespawn', function(playerdata)
+  {
+    io.emit('sendplayerrespawn', playerdata);
   });
 
   //切断

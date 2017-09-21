@@ -41,8 +41,6 @@
 <script src="/js/MathExtension.js"></script>
 <script src="/js/MyInput.js"></script>
 <script>
-
-
     var assetloadnum = 0;
     var assetmaxnum = 2;
 
@@ -126,13 +124,12 @@
         audioElem.play();
 
         renderer_canvas();
-
     }
 
     //終了時
-    window.onbeforeunload = function(){
+    window.addEventListener('beforeunload', function(){
         socket.emit('gameend',currentid);
-    }
+    });
 
 
     var renderer_canvas = function () {
@@ -193,6 +190,7 @@
     {
         //ローカルプレイヤーのみ更新
         if (players[currentid]) players[currentid].update(input);
+        
         //全ての連想配列の描画処理を実行
         for (var key in players) {
             players[key].draw(ctx);
@@ -272,18 +270,51 @@
 
         //プレイヤーのアップデート
         socket.on('sendplayerupdate', function (playerdata) {
+            if(playerdata.id == currentid) { return; }
+
             if (players[playerdata.id]) {
                 players[playerdata.id].receiveMove(playerdata.id, playerdata.pos_x, playerdata.pos_y);
                 players[playerdata.id].receiveRotate(playerdata.angle);
+            }
+        });
+
+        socket.on('bulletupdate', function(playerdata)
+        {
+            if(playerdata.id == currentid) { return; }
+            if(players[playerdata.id])
+            {
+                players[playerdata.id].bulletUpdate();
             }
         });
         
         //だれかが弾を撃った
         socket.on('sendplayershot', function(playerdata)
         {
+            if(playerdata.id == currentid) { return; }
+
             if(players[playerdata.id])
             {
                 players[playerdata.id].receiveShot(playerdata.pos_x, playerdata.pos_y, playerdata.angle);
+            }
+        });
+
+        socket.on('sendplayerdeath', function(playerdata)
+        {
+            if(playerdata.id == currentid) { return; }
+
+            if(players[playerdata.id])
+            {
+                players[playerdata.id].dead();
+            }
+        });
+
+        socket.on('sendplayerrespawn', function(playerdata)
+        {
+            if(playerdata.id == currentid) { return; }
+
+            if(players[playerdata.id])
+            {
+                players[playerdata.id].respawn();
             }
         });
 
