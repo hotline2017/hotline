@@ -199,7 +199,7 @@
         if (players[currentid]) 
         {
             players[currentid].update(input);
-            if((gametimer % 5) == 0)
+            if((gametimer % 4) == currentid)
             {
                 socket.emit('sendalivestate', currentid, players[currentid].is_alive);
             }
@@ -325,6 +325,9 @@
             audioElem.play();
             seElem.src = "./sound/buzzer1.mp3";
             seElem.play();
+
+            //しぶき全削除
+            sites.splice(0, sites.length);
         })
 
         socket.on('gamereset', function () {

@@ -153,7 +153,10 @@ Player.prototype =
 
     bulletErase   : function(index)
     {
-        this.bulletCollection[index].is_alive = false;
+        if(this.bulletCollection[index])
+        {
+            this.bulletCollection[index].is_alive = false;
+        }
     },
 
     respawn       : function()
