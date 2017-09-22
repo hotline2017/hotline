@@ -46,7 +46,7 @@ Player.prototype =
         var maxBulletCount = 2;
 
         this.bulletUpdate();
-        if(bulletCollection.length != 0)
+        if(this.bulletCollection.length != 0)
         {
             socket.emit('bulletupdate', this.id);
         }
