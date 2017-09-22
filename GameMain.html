@@ -146,6 +146,7 @@
             switch (gamemode) {
                 case 0: TitleUpdate(ctx); break;
                 case 1: MainUpdate(ctx); break;
+                case 2: ResultUpdate(ctx); break;
             }
         }
 
@@ -172,21 +173,6 @@
             gamemode = 1;
         }
         name =null;
-        // if (!firstfrag) {
-        //     setTimeout(function () {
-        //         do{
-        //             name = prompt("あなたの名前を「半角英数字」で入力してください");
-        //             if (!name.match(/^[a-zA-Z0-9]{1,}$/)) {
-        //                 name = null;
-        //             }
-        //         } while (name === null)
-        //         socket.emit('playerjoin');
-        //         gamemode = 1; // Gameメインへ
-        //         //audioElem.src = "sound/PlayBGM.mp3";
-        //         //audioElem.play();
-        //     }, 100);
-        //     firstfrag = true;
-        // }
     }
 
     function MainUpdate(ctx)
@@ -238,6 +224,16 @@
         }
     }
 
+    function ResultUpdate(ctx)
+    {
+        //全ての連想配列の描画処理を実行
+        for (var key in players) {
+            players[key].draw(ctx);
+        }
+
+
+    }
+
     function txtDisplay(ctx, txt, tx, ty, tsize, textcolor){
 				em = 0;
 				var tmp_data = [];
@@ -248,7 +244,7 @@
 				for(i=0;i<tmp_data.length;i++){
 					ctx.fillText(tmp_data[i], tx, (ty + (tsize) + ((tsize + em) * i)));
 				}
-	}
+    }
 
     $(function () {
 
@@ -263,9 +259,15 @@
             console.log("join");
             //新しいプレイヤーを生成する
             players[numid] = new Player(numid, "image/player", MathExtension.random(0, $('#canvas').width()), MathExtension.random(0, $('#canvas').height()), 30);
-            if (currentid == null) currentid = numid;
+            if (currentid == null) {
+                currentid = numid;
+                socket.emit('killinit',currentid);
+            }
+            else
+            {
                 //最新のユーザーでない場合自分の場所を最新のユーザーに伝えて生成させる
-            else socket.emit('gameinit', players[currentid]);
+                socket.emit('gameinit', players[currentid]);
+            }
         });
 
         //他のユーザーを出現生成させる
@@ -276,8 +278,8 @@
         })
 
         //ゲーム終了が通告されたら
-        socket.on('gamefinish', function (inittime) {
-            gametimer = inittime;
+        socket.on('gamefinish', function (id) {
+            alert(id+"Pが勝利です");
         })
 
         //だれかがゲームから抜けた

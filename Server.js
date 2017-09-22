@@ -11,6 +11,8 @@ var player_num = 0;
 var game_mode = 0;
 //ゲーム内のタイマー
 var game_timer = INIT_GAMEEND_TIME;
+//kill数
+var kill_count = [];
 
 /**
  * Socket.ioを使用した簡易チャット
@@ -64,8 +66,19 @@ io.on('connection', function(socket){
   //入場
   socket.on('playerjoin', function(){
     console.log('join');
-    io.emit('playerjoin',''+player_num);
+    io.emit('playerjoin', '' + player_num);
+    kill_count[player_num.toString] = 0;
     player_num++;
+  });
+
+    //killカウントを最初に戻す
+  socket.on('gamefinish', function (id) {
+      kill_count[id.toString] = 0;
+  });
+
+  //キルした時に使う
+  socket.on('Killadd', function (id) {
+      kill_count[id.toString]++;
   });
 
   //初期化
@@ -75,9 +88,17 @@ io.on('connection', function(socket){
   });
 
   //ゲーム終了宣言
-  socket.on('gamefinish', function(){
-    game_timer = 1000000;
-       io.emit('gamefinish',INIT_GAMEEND_TIME);
+  socket.on('gamefinish', function () {
+      var max = 0;
+      var id = "";
+      for (var key in kill_count) {
+          if(kill_count[key] > max)
+          {
+              id = key;
+              max = kill_count[key];
+          }
+      }
+    io.emit('gamefinish',id);
   });
 
   //だれかが終了
