@@ -31,8 +31,6 @@
 </canvas>
 </div>
 <form id="input" class="form" onsubmit="return false;">
-    名前を入力してください<br>
-    <input input type="text" style="width: 500; height: 32px; font-size:  32px;"/>
 <form/>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -71,8 +69,20 @@
     var input = new MyInput();
 
     var audioElem = new Audio();
+    audioElem.loop = true;
 
-    var sites   = new Array();
+    var seElem = new Audio();
+    seElem.loop = false;
+
+    var sites = new Array();
+
+    var winner = null;
+
+    var clownimage;
+
+    var resulttimer = 30 * 60;
+
+    var killcount = 0;
 
     window.onkeydown   = function(e)
     {
@@ -122,16 +132,23 @@
             assetloadnum++;
         }
 
+        clownimage = new Image();
+        clownimage.src = "./image/WinMark.png"
+
         audioElem.src = "./sound/TitleBGM.mp3";
         audioElem.play();
+
+        document.getElementById("input").innerHTML = '名前を入力してください<br> <input input type="text" id="nametext" style="width: 500; height: 32px; font-size:  32px;"/>';
 
         renderer_canvas();
     }
 
     //終了時
     window.addEventListener('beforeunload', function (e) {
-        e.returnValue = "終了しますか？";
-        socket.emit('gameend', currentid);
+        if (gamemode != 0)
+        {
+            socket.emit('gameend', currentid);
+        }
     });
 
 
@@ -162,8 +179,9 @@
         //エンターキー
         if(input.isKeydown(13))
         {
-            var node = document.getElementById('input');
-	        node.parentNode.removeChild(node);
+            document.getElementById("input").innerHTML = "";
+            //var node = document.getElementById('nametext');
+	        //node.parentNode.removeChild(node);
 
             //if(name = null)
             audioElem.src = "./sound/PlayBGM.mp3";
@@ -191,9 +209,11 @@
         if (players[currentid]) socket.emit('sendplayerupdate', players[currentid]);
         gametimer--;
         socket.emit('gametimerdata', gametimer);
+        socket.emit('killcount', currentid);
         {
             var posx = ($('#canvas').width() / 2) - 96;
             var posy = 16;
+            txtDisplay(ctx, killcount + ":Kill", ($('#canvas').width()) - 100, posy, 34, 'FFFFFF');
             txtDisplay(ctx, "TIME:" + gametimer, posx, posy, 34, 'FFFFFF');
         }
 
@@ -231,6 +251,25 @@
             players[key].draw(ctx);
         }
 
+        if (players[winner] != null)
+        {
+            var posx = players[winner].pos_x - 34;
+            var posy = players[winner].pos_y - 50;
+            ctx.drawImage(clownimage, 0, 0, 68, 48, posx, posy, 68, 48);
+        }
+
+        resulttimer--;
+
+        if (resulttimer <= 0)
+        {
+            socket.emit('gamereset');
+        }
+
+        var posx = ($('#canvas').width() / 2) - 200;
+        var posy = ($('#canvas').height() / 2) - 16;
+        var text = parseInt(winner) + 1;
+        txtDisplay(ctx, "勝者:"+text+"P", posx + 60, posy - 100, 52, 'FFFFFF');
+        txtDisplay(ctx, "あと" + resulttimer + "でタイトルにもどります", posx, posy, 34, 'FFFFFF');
 
     }
 
@@ -279,7 +318,24 @@
 
         //ゲーム終了が通告されたら
         socket.on('gamefinish', function (id) {
-            alert(id+"Pが勝利です");
+            winner = id;
+            gamemode = 2;
+            resulttimer = 30 * 60;
+            audioElem.src = "./sound/Result0.mp3";
+            audioElem.play();
+            seElem.src = "./sound/buzzer1.mp3";
+            seElem.play();
+        })
+
+        socket.on('gamereset', function () {
+            name = null
+            gametimer = 180 * 60;
+            gamemode = 0;
+            currentid = null;
+            players = {};
+            document.getElementById("input").innerHTML = '名前を入力してください<br> <input input type="text" id="nametext" style="width: 500; height: 32px; font-size:  32px;"/>';
+            audioElem.src = "./sound/TitleBGM.mp3";
+            audioElem.play();
         })
 
         //だれかがゲームから抜けた
@@ -320,6 +376,11 @@
             {
                 players[id].bulletErase(bulletIndex);
             }
+        });
+
+        socket.on('killcount', function (id, count) {
+            if (id != currentid) return;
+            killcount = count;
         });
         
         //だれかが弾を撃った

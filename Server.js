@@ -48,9 +48,7 @@ http.listen(process.env.PORT || 3000, function(){
 //--------------------------------------
 // Socket.io
 //--------------------------------------
-io.on('connection', function(socket){
-  //接続時のメッセージ
-  console.log('a user connected player_count:'+player_num);
+io.on('connection', function (socket) {
 
   //プレイヤー情報を送る
   socket.on('sendplayerupdate', function(playerdata){
@@ -67,18 +65,14 @@ io.on('connection', function(socket){
   socket.on('playerjoin', function(){
     console.log('join');
     io.emit('playerjoin', '' + player_num);
-    kill_count[player_num.toString] = 0;
+    kill_count[player_num.toString()] = 0;
     player_num++;
-  });
-
-    //killカウントを最初に戻す
-  socket.on('gamefinish', function (id) {
-      kill_count[id.toString] = 0;
   });
 
   //キルした時に使う
   socket.on('Killadd', function (id) {
-      kill_count[id.toString]++;
+      kill_count["" + id]++;
+      console.log("" + id +  "" +kill_count["" + id]);
   });
 
   //初期化
@@ -87,10 +81,14 @@ io.on('connection', function(socket){
     io.emit('gameinit',playerdata);
   });
 
+  socket.on('killcount', function (playerid) {
+      io.emit('killcount', playerid, kill_count[playerid]);
+  });
+
   //ゲーム終了宣言
   socket.on('gamefinish', function () {
       var max = 0;
-      var id = "";
+      var id = "0";
       for (var key in kill_count) {
           if(kill_count[key] > max)
           {
@@ -106,7 +104,8 @@ io.on('connection', function(socket){
     console.log('gameend');
     if(exitid)
     {
-       player_num--;
+        if (player_num > 0) player_num--;
+        if (player_num == 0) game_timer = INIT_GAMEEND_TIME;
        io.emit('gameend',exitid);
     }
   });
@@ -144,8 +143,17 @@ io.on('connection', function(socket){
     io.emit('sendalivestate', id, is_alive);
   });
 
+  socket.on('gamereset', function () {
+      game_timer = INIT_GAMEEND_TIME;
+      player_num = 0;
+      for (var key in kill_count) {
+          kill_count["" +key] = 0;
+      }
+      io.emit('gamereset');
+  });
+
   //切断
-  socket.on('disconnect', function(){
+  socket.on('disconnect', function () {
     console.log('user disconnected player_count:'+player_num);
   });
 });
