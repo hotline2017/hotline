@@ -220,6 +220,7 @@ Player.prototype =
                     this.deathCount++;
                     this.returnTime = 180;
                     other.killCount ++;
+                    socket.emit('Killadd', other.id);
                     socket.emit('sendplayerdeath', this);
 
                     other.bulletCollection[i].is_alive = false;
@@ -244,6 +245,7 @@ Player.prototype =
                     other.deathCount++;
                     other.returnTime = 180;
                     this.killCount ++;
+                    socket.emit('Killadd', this.id);
                     socket.emit('sendplayerdeath', other);
 
                     this.bulletCollection[i].is_alive = false;
