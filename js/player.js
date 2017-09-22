@@ -46,7 +46,10 @@ Player.prototype =
         var maxBulletCount = 2;
 
         this.bulletUpdate();
-        socket.emit('bulletupdate', this);
+        if(bulletCollection.length != 0)
+        {
+            socket.emit('bulletupdate', this.id);
+        }
 
         this.localRotate(input.mouse_x, input.mouse_y);
 
@@ -55,7 +58,7 @@ Player.prototype =
            this.bulletCollection.length < maxBulletCount)
         {
             this.bulletCollection.push(new Bullet(this.id, this.pos_x, this.pos_y, this.angle));
-            socket.emit('sendplayershot', this);
+            socket.emit('sendplayershot', this.id, this.pos_x, this.pos_y, this.angle);
         }
 
         this.returnTime--;
@@ -65,7 +68,7 @@ Player.prototype =
             this.pos_y = this.startY;
             this.is_alive = true;
             this.invincibleTime = 90;
-            socket.emit('sendplayerrespawn', this);
+            socket.emit('sendplayerrespawn', this.id);
         }                              
         
         this.invincibleTime--;

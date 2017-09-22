@@ -51,8 +51,8 @@ http.listen(process.env.PORT || 3000, function(){
 io.on('connection', function (socket) {
 
   //プレイヤー情報を送る
-  socket.on('sendplayerupdate', function(playerdata){
-    io.emit('sendplayerupdate', playerdata);
+  socket.on('sendplayerupdate', function(id, pos_x, pos_y, angle){
+    io.emit('sendplayerupdate', id, pos_x, pos_y, angle);
   });
 
   //ゲーム時間の情報
@@ -111,9 +111,9 @@ io.on('connection', function (socket) {
   });
 
   //だれかが弾を撃った
-  socket.on('sendplayershot',function(playerdata)
+  socket.on('sendplayershot',function(id, pos_x, pos_y, angle)
   {
-    io.emit('sendplayershot', playerdata);
+    io.emit('sendplayershot', id, pos_x, pos_y, angle);
   });
 
   socket.on('bulletupdate', function(playerdata)

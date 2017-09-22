@@ -206,7 +206,15 @@
         }
 
         //他のサーバーにキャラが移動することを送信
-        if (players[currentid]) socket.emit('sendplayerupdate', players[currentid]);
+        if (players[currentid]) 
+        {
+            socket.emit('sendplayerupdate', 
+                currentid, 
+                players[currentid].pos_x,
+                players[currentid].pos_y,
+                players[currentid].angle
+            );
+        }
         gametimer--;
         socket.emit('gametimerdata', gametimer);
         socket.emit('killcount', currentid);
@@ -352,22 +360,22 @@
         });
 
         //プレイヤーのアップデート
-        socket.on('sendplayerupdate', function (playerdata) {
-            if(playerdata.id == currentid) { return; }
+        socket.on('sendplayerupdate', function (id, pos_x, pos_y, angle) {
+            if(id == currentid) { return; }
 
-            if (players[playerdata.id]) {
-                players[playerdata.id].serverUpdate();
-                players[playerdata.id].receiveMove(playerdata.id, playerdata.pos_x, playerdata.pos_y);
-                players[playerdata.id].receiveRotate(playerdata.angle);
+            if (players[id]) {
+                players[id].serverUpdate();
+                players[id].receiveMove(id, pos_x, pos_y);
+                players[id].receiveRotate(angle);
             }
         });
 
-        socket.on('bulletupdate', function(playerdata)
+        socket.on('bulletupdate', function(id)
         {
-            if(playerdata.id == currentid) { return; }
-            if(players[playerdata.id])
+            if(id == currentid) { return; }
+            if(players[id])
             {
-                players[playerdata.id].bulletUpdate();
+                players[id].bulletUpdate();
             }
         });
 
@@ -387,13 +395,13 @@
         });
         
         //だれかが弾を撃った
-        socket.on('sendplayershot', function(playerdata)
+        socket.on('sendplayershot', function(id, pos_x, pos_y, angle)
         {
-            if(playerdata.id == currentid) { return; }
+            if(id == currentid) { return; }
 
-            if(players[playerdata.id])
+            if(players[id])
             {
-                players[playerdata.id].receiveShot(playerdata.pos_x, playerdata.pos_y, playerdata.angle);
+                players[id].receiveShot(pos_x, pos_y, angle);
             }
         });
 
@@ -406,13 +414,13 @@
             }
         });
 
-        socket.on('sendplayerrespawn', function(playerdata)
+        socket.on('sendplayerrespawn', function(id)
         {
-            if(playerdata.id == currentid) { return; }
+            if(id == currentid) { return; }
 
-            if(players[playerdata.id])
+            if(players[id])
             {
-                players[playerdata.id].respawn();
+                players[id].respawn();
             }
         });
 
