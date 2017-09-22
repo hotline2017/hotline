@@ -216,8 +216,17 @@
             );
         }
         gametimer--;
-        socket.emit('gametimerdata', gametimer);
-        socket.emit('killcount', currentid);
+
+        if((gametimer % 12) == currentid * 3)
+        {
+            socket.emit('gametimerdata', gametimer);
+        }
+
+        if((gametimer % 4) == currentid)
+        {
+            socket.emit('killcount', currentid);
+        }
+
         {
             var posx = ($('#canvas').width() / 2) - 96;
             var posy = 16;
@@ -356,7 +365,12 @@
 
         //ゲーム時間のアップデート
         socket.on('gametimerdata', function (timerdata) {
-            gametimer = timerdata;
+            //ラグがちいさいプレイヤーに合わせる
+            //    ->localのgametimerがtimerdataより大きければ更新
+            if(gametimer > timerdata)
+            {
+                gametimer = timerdata;
+            }
         });
 
         //プレイヤーのアップデート
